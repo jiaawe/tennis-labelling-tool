@@ -23,7 +23,7 @@ To run the Tennis Labelling Tool:
 
 2. Run the Gradio app:
    ```
-   python app.py
+   python3 app.py
    ```
 
 3. Open your web browser and go to the URL provided in the terminal output (usually `http://127.0.0.1:7860`).
