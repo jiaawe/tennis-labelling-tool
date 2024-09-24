@@ -12,12 +12,26 @@ class LabelPage:
         self.total_frames = None
         self.net = None
         self.events = []
-        self.label_page, self.current_frame, self.slider, self.label_button, self.delete_button, self.event_list, self.labels = self.label_page(visible=visible)
+        self.player_names = {"p1": None, "p2": None, "p3": None, "p4": None}
+        self.label_page, self.current_frame, self.slider, self.label_button, self.delete_button, self.event_list, self.labels, self.players = self.label_page(visible=visible)
         
     def label_page(self, visible=True):
         label_page = gr.Group(visible=visible)
         with label_page:
-        
+            with gr.Row(): gr.Markdown(""" ## Player Description""", elem_classes="column-container")
+            
+            # Player description
+            with gr.Row():
+                with gr.Column(elem_classes="column-container"):
+                    p1 = gr.Textbox(label="Player 1", placeholder="Enter P1 Description", interactive=True)
+                    p2 = gr.Textbox(label="Player 2", placeholder="Enter P2 Description", interactive=True)
+                
+                with gr.Column(elem_classes="column-container"):
+                    p3 = gr.Textbox(label="Player 3", placeholder="Enter P3 Description", interactive=True)
+                    p4 = gr.Textbox(label="Player 4", placeholder="Enter P4 Description", interactive=True)
+                
+            players = [p1, p2, p3, p4]
+    
             # Labeling Information
             with gr.Row():
                 with gr.Column(scale=2, elem_classes="column-container"):
@@ -45,7 +59,7 @@ class LabelPage:
                         skip_10s = gr.Button("10s →")
                         
                 with gr.Column(scale=1, elem_classes="column-container"):
-                    with gr.Row(elem_id="row1", elem_classes="row-container"):
+                    with gr.Row(elem_id="row1"):
                         gr.Markdown(""" ## Event Labeling""")
                     with gr.Row():
                         player = gr.Radio(["P1", "P2", "P3", "P4"], label="Player", interactive=True)
@@ -71,8 +85,6 @@ class LabelPage:
                         delete_button = gr.Button("Delete Frame")
                     with gr.Row():
                         save_button = gr.Button("Save Labels")
-                    # with gr.Row(elem_id="row2", elem_classes="row-container"):
-                    #     gr.Markdown("")
                     
                     # Store labels here
                     labels = [player, court_position, side, shot_type, shot_direction, formation, outcome, player_coordinates]
@@ -80,33 +92,37 @@ class LabelPage:
             event_list = gr.Code(value=None, label="Labeled Events", language="json")
             save_status = gr.Textbox(label="Save Status", value="Not Saved")
             self.prev_page_button = gr.Button("Back to Net", visible=False)
-            slider.release(self.update_frame, inputs=[slider], outputs=[current_frame, slider] + labels) # set up slider to update frame
+            
+            # Player Description Update
+            for i, player in enumerate(players):
+                    player.change(self.update_player, inputs=[player, gr.Number(value=i+1, visible=False)], outputs=[event_list, save_status])
+            
+            # Slider update
+            slider.release(self.update_frame, inputs=[slider], outputs=[current_frame, slider]) # set up slider to update frame
             
             # Backward navigation
-            skip_back_1_frame.click(self.skip_frames, inputs = [gr.Number(-1, visible=False), slider], outputs=[current_frame, slider] + labels)
-            skip_back_5_frames.click(self.skip_frames, inputs = [gr.Number(-5, visible=False), slider], outputs=[current_frame, slider] + labels)
-            skip_back_10_frames.click(self.skip_frames, inputs = [gr.Number(-10, visible=False), slider], outputs=[current_frame, slider] + labels)
-            skip_back_1s.click(self.skip_seconds, inputs = [gr.Number(-1, visible=False), slider], outputs=[current_frame, slider] + labels)
-            skip_back_5s.click(self.skip_seconds, inputs = [gr.Number(-5, visible=False), slider], outputs=[current_frame, slider] + labels)
-            skip_back_10s.click(self.skip_seconds, inputs = [gr.Number(-10, visible=False), slider], outputs=[current_frame, slider] + labels)
+            skip_back_1_frame.click(self.skip_frames, inputs = [gr.Number(-1, visible=False), slider], outputs=[current_frame, slider])
+            skip_back_5_frames.click(self.skip_frames, inputs = [gr.Number(-5, visible=False), slider], outputs=[current_frame, slider])
+            skip_back_10_frames.click(self.skip_frames, inputs = [gr.Number(-10, visible=False), slider], outputs=[current_frame, slider])
+            skip_back_1s.click(self.skip_seconds, inputs = [gr.Number(-1, visible=False), slider], outputs=[current_frame, slider])
+            skip_back_5s.click(self.skip_seconds, inputs = [gr.Number(-5, visible=False), slider], outputs=[current_frame, slider])
+            skip_back_10s.click(self.skip_seconds, inputs = [gr.Number(-10, visible=False), slider], outputs=[current_frame, slider])
 
-        
             # Forward navigation
-            skip_1_frame.click(self.skip_frames, inputs = [gr.Number(1, visible=False), slider], outputs=[current_frame, slider] + labels)
-            skip_5_frames.click(self.skip_frames, inputs = [gr.Number(5, visible=False), slider], outputs=[current_frame, slider] + labels)
-            skip_10_frames.click(self.skip_frames, inputs = [gr.Number(10, visible=False), slider], outputs=[current_frame, slider] + labels)
-            skip_1s.click(self.skip_seconds, inputs = [gr.Number(1, visible=False), slider], outputs=[current_frame, slider] + labels)
-            skip_5s.click(self.skip_seconds, inputs = [gr.Number(5, visible=False), slider], outputs=[current_frame, slider] + labels)
-            skip_10s.click(self.skip_seconds, inputs = [gr.Number(10, visible=False), slider], outputs=[current_frame, slider] + labels)
-            
+            skip_1_frame.click(self.skip_frames, inputs = [gr.Number(1, visible=False), slider], outputs=[current_frame, slider])
+            skip_5_frames.click(self.skip_frames, inputs = [gr.Number(5, visible=False), slider], outputs=[current_frame, slider])
+            skip_10_frames.click(self.skip_frames, inputs = [gr.Number(10, visible=False), slider], outputs=[current_frame, slider])
+            skip_1s.click(self.skip_seconds, inputs = [gr.Number(1, visible=False), slider], outputs=[current_frame, slider])
+            skip_5s.click(self.skip_seconds, inputs = [gr.Number(5, visible=False), slider], outputs=[current_frame, slider])
+            skip_10s.click(self.skip_seconds, inputs = [gr.Number(10, visible=False), slider], outputs=[current_frame, slider])
             
             # Labeling
             current_frame.select(self.handle_image_click, outputs=[court_position, player_coordinates])
-            label_button.click(self.label_event, inputs=labels + [slider], outputs=[event_list, save_status])
+            label_button.click(self.label_event, inputs=labels + [slider], outputs=[event_list, save_status] + labels)
             save_button.click(self.save_labels, inputs=[event_list], outputs=[save_status])
             delete_button.click(self.delete_event, inputs=[slider], outputs=[event_list, save_status])
             
-        return label_page, current_frame, slider, label_button, delete_button, event_list, labels
+        return label_page, current_frame, slider, label_button, delete_button, event_list, labels, players
 
     def setup_prev_page_button(self, label_net_page):
         self.prev_page = label_net_page
@@ -121,7 +137,7 @@ class LabelPage:
     
     def update_frame(self, slider):
         frame = get_current_frame(self.video, slider)
-        return frame, slider, gr.update(value=None), gr.update(value=None), gr.update(value=None), gr.update(value=None), gr.update(value=None), gr.update(value=None), gr.update(value=None), gr.update(value=None)
+        return frame, slider
 
     def skip_frames(self, num_frames, slider):
         try:
@@ -138,18 +154,17 @@ class LabelPage:
         except Exception as e:
             gr.Warning(f"Encountered an error while skipping frames: {e}")
     
-    
     def label_event(self, player, court_position, side, shot_type, shot_direction, formation, outcome, player_coordinates, slider):
-        if not player: gr.Warning("Please select a player."); return gr.update(), gr.update()
-        if not court_position: gr.Warning("Please select a court position."); return gr.update(), gr.update()
-        if not side: gr.Warning("Please select a side."); return gr.update(), gr.update()
-        if not shot_type: gr.Warning("Please select a shot type."); return gr.update(), gr.update()
-        if not shot_direction: gr.Warning("Please select a shot direction."); return gr.update(), gr.update()
-        if not formation: gr.Warning("Please select a formation."); return gr.update(), gr.update()
-        if not outcome: gr.Warning("Please select an outcome."); return gr.update(), gr.update()
-        if not player_coordinates: gr.Warning("Please click the player on the image (hit coordinates)"); return gr.update(), gr.update()
-        if formation != 'Non-serve' and shot_type != 'Serve': gr.Warning("Formation should be 'Non-serve' for non-serve shots."); return gr.update(), gr.update()
-        if formation == 'Non-serve' and shot_type == 'Serve': gr.Warning("Formation should not be 'Non-serve' for serve shots."); return gr.update(), gr.update()
+        if not player: gr.Warning("Please select a player."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if not court_position: gr.Warning("Please select a court position."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if not side: gr.Warning("Please select a side."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if not shot_type: gr.Warning("Please select a shot type."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if not shot_direction: gr.Warning("Please select a shot direction."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if not formation: gr.Warning("Please select a formation."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if not outcome: gr.Warning("Please select an outcome."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if not player_coordinates: gr.Warning("Please click the player on the image (hit coordinates)"); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if formation != 'Non-serve' and shot_type != 'Serve': gr.Warning("Formation should be 'Non-serve' for non-serve shots."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if formation == 'Non-serve' and shot_type == 'Serve': gr.Warning("Formation should not be 'Non-serve' for serve shots."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
     
         coarse_label = f"{player}_{court_position.lower().replace(' ', '_')}_{side.lower()}_{shot_type.lower()}_{shot_direction.lower()}_{formation.lower()}_{outcome.lower()}"
     
@@ -177,11 +192,17 @@ class LabelPage:
         self.events.sort(key=lambda x: x["frame"])
         
         current_video_id = self.prev_page.video_path.split("/")[-1].split(".")[0]
-        return self.update_event_list()
+        event_update, status_update = self.update_event_list()
+        return ( event_update, status_update, 
+                gr.update(value=None), gr.update(value=None), gr.update(value=None), gr.update(value=None), 
+                gr.update(value=None), gr.update(value=None), gr.update(value=None), gr.update(value=None))
 
     def update_event_list(self):
         current_video_id = self.prev_page.video_path.split("/")[-1].split(".")[0]
-        events_json = json.dumps({"video_id": current_video_id, "total_frames": self.total_frames, "events": self.events}, indent=2)
+        events_json = json.dumps({"video_id": current_video_id, 
+                                  "total_frames": self.total_frames, 
+                                  "player_descriptions": self.player_names,
+                                  "events": self.events}, indent=2)
         return gr.update(value=events_json, language="json"), gr.update(value="Labelled events not updated")
     
     def delete_event(self, slider):
@@ -214,14 +235,21 @@ class LabelPage:
                 with open(file_path, 'r') as f:
                     existing_data = json.load(f)
             else:
-                existing_data = {"video_id": current_video_id, "total_frames": self.total_frames, "events": []}
+                existing_data = {"video_id": current_video_id, "total_frames": self.total_frames, "player_descriptions": self.player_names, "events": []}
             
             self.events = existing_data["events"]
-            return gr.update(value=json.dumps(existing_data, indent=2), language="json")
+            self.player_names = existing_data["player_descriptions"]
+            return (gr.update(value=json.dumps(existing_data, indent=2), language="json"), gr.update(value=existing_data["player_descriptions"]["p1"]), 
+                    gr.update(value=existing_data["player_descriptions"]["p2"]), gr.update(value=existing_data["player_descriptions"]["p3"]), 
+                    gr.update(value=existing_data["player_descriptions"]["p4"]))
         
         except Exception as e:
             gr.Warning(f"Error loading event list: {e}")
             return gr.update(value=None)
+    
+    def update_player(self, player, i):
+        self.player_names[f"p{i}"] = player
+        return self.update_event_list()
     
     def get_court_position(self, x: int, y: int) -> str:
         if y < self.net[1]:

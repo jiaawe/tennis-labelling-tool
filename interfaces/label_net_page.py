@@ -58,7 +58,8 @@ class LabelNetPage:
             self.show_label_page, 
             inputs=[],
             # initialize slider and first video frame too
-            outputs=[self.label_net_page, self.prev_page_button, self.next_page_button, label_page.label_page, label_page.prev_page_button, label_page.current_frame, label_page.slider, label_page.event_list]
+            outputs=[self.label_net_page, self.prev_page_button, self.next_page_button, label_page.label_page, 
+                     label_page.prev_page_button, label_page.current_frame, label_page.slider, label_page.event_list] + label_page.players
         )
 
     def show_label_page(self):
@@ -71,9 +72,11 @@ class LabelNetPage:
         current_frame = get_current_frame(video, 0)
         self.next_page.video, self.next_page.total_frames = video, total_frames
         self.next_page.net = self.scale_net_position(video, (1280, 720))
-        event_list = self.next_page.load_event_list(self.video_path)
+        event_list, p1, p2, p3, p4 = self.next_page.load_event_list(self.video_path)
         
-        return gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=True), gr.update(visible=True), current_frame, gr.Slider(minimum=0, maximum=total_frames, step=1, value=1, label="Frame Slider"), event_list
+        return (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=True), 
+                gr.update(visible=True), current_frame, gr.Slider(minimum=0, maximum=total_frames, step=1, value=1, label="Frame Slider"), 
+                event_list, p1, p2, p3, p4)
 
     def get_click_coordinates(self, evt: gr.SelectData):
         try:

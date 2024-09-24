@@ -1,12 +1,18 @@
 {
   "video_id": "4-o6NnUD0S4",
   "total_frames": 263448,
+  "player_descriptions": {
+    "p1": "testjrtyrtyrtyheloo",
+    "p2": "HELLo P2!!",
+    "p3": "test3",
+    "p4": "hello"
+  },
   "events": [
     {
       "frame": 1,
-      "event": "P1_near_ad_forehand_serve_t_conventional_in",
-      "relative_player_width": 0.42421875,
-      "relative_player_height": 0.5125
+      "event": "P1_near_deuce_forehand_serve_t_conventional_in",
+      "relative_player_width": 0.71796875,
+      "relative_player_height": 0.5763888888888888
     }
   ]
 }
