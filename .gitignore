@@ -1,5 +1,7 @@
 *.mp4
 __pycache__/
 __pycache__
-.json
+*.json
 *.pyc
+*.__pycache__
+.pyc

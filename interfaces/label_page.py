@@ -62,6 +62,8 @@ class LabelPage:
                     with gr.Row(elem_id="row1"):
                         gr.Markdown(""" ## Event Labeling""")
                     with gr.Row():
+                        labeled_frame_number = gr.Textbox(label="Frame Number", visible=True, interactive=False)
+                    with gr.Row():
                         player = gr.Radio(["P1", "P2", "P3", "P4"], label="Player", interactive=True)
                     with gr.Row():
                         court_position = gr.Radio(["Far deuce", "Far ad", "Near ad", "Near deuce"], label="Court Position", interactive=True)
@@ -87,9 +89,9 @@ class LabelPage:
                         save_button = gr.Button("Save Labels")
                     
                     # Store labels here
-                    labels = [player, court_position, side, shot_type, shot_direction, formation, outcome, player_coordinates]
+                    labels = [player, court_position, side, shot_type, shot_direction, formation, outcome, player_coordinates, labeled_frame_number]
             
-            event_list = gr.Code(value=None, label="Labeled Events", language="json")
+            event_list = gr.Code(value=None, label="Labeled Events", language="json", interactive=False)
             save_status = gr.Textbox(label="Save Status", value="Not Saved")
             self.prev_page_button = gr.Button("Back to Net", visible=False)
             
@@ -117,8 +119,8 @@ class LabelPage:
             skip_10s.click(self.skip_seconds, inputs = [gr.Number(10, visible=False), slider], outputs=[current_frame, slider])
             
             # Labeling
-            current_frame.select(self.handle_image_click, outputs=[court_position, player_coordinates])
-            label_button.click(self.label_event, inputs=labels + [slider], outputs=[event_list, save_status] + labels)
+            current_frame.select(self.handle_image_click, inputs=[slider], outputs=[court_position, player_coordinates, labels[-1]])
+            label_button.click(self.label_event, inputs=labels, outputs=[event_list, save_status] + labels)
             save_button.click(self.save_labels, inputs=[event_list], outputs=[save_status])
             delete_button.click(self.delete_event, inputs=[slider], outputs=[event_list, save_status])
             
@@ -154,27 +156,27 @@ class LabelPage:
         except Exception as e:
             gr.Warning(f"Encountered an error while skipping frames: {e}")
     
-    def label_event(self, player, court_position, side, shot_type, shot_direction, formation, outcome, player_coordinates, slider):
-        if not player: gr.Warning("Please select a player."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
-        if not court_position: gr.Warning("Please select a court position."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
-        if not side: gr.Warning("Please select a side."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
-        if not shot_type: gr.Warning("Please select a shot type."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
-        if not shot_direction: gr.Warning("Please select a shot direction."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
-        if not formation: gr.Warning("Please select a formation."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
-        if not outcome: gr.Warning("Please select an outcome."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
-        if not player_coordinates: gr.Warning("Please click the player on the image (hit coordinates)"); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
-        if formation != 'Non-serve' and shot_type != 'Serve': gr.Warning("Formation should be 'Non-serve' for non-serve shots."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
-        if formation == 'Non-serve' and shot_type == 'Serve': gr.Warning("Formation should not be 'Non-serve' for serve shots."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+    def label_event(self, player, court_position, side, shot_type, shot_direction, formation, outcome, player_coordinates, labeled_frame_number):
+        if not player: gr.Warning("Please select a player."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if not court_position: gr.Warning("Please select a court position."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if not side: gr.Warning("Please select a side."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if not shot_type: gr.Warning("Please select a shot type."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if not shot_direction: gr.Warning("Please select a shot direction."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if not formation: gr.Warning("Please select a formation."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if not outcome: gr.Warning("Please select an outcome."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if not player_coordinates or labeled_frame_number is None: gr.Warning("Please click the player on the image (hit coordinates)"); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if formation != 'Non-serve' and shot_type != 'Serve': gr.Warning("Formation should be 'Non-serve' for non-serve shots."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if formation == 'Non-serve' and shot_type == 'Serve': gr.Warning("Formation should not be 'Non-serve' for serve shots."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
     
         coarse_label = f"{player}_{court_position.lower().replace(' ', '_')}_{side.lower()}_{shot_type.lower()}_{shot_direction.lower()}_{formation.lower()}_{outcome.lower()}"
     
         # Check if there's an existing event for this frame
-        existing_event_index = next((index for (index, d) in enumerate(self.events) if d["frame"] == slider), None)
+        existing_event_index = next((index for (index, d) in enumerate(self.events) if d["frame"] == labeled_frame_number), None)
     
         if existing_event_index is not None:
             # Update existing event
             self.events[existing_event_index] = {
-                "frame": slider,
+                "frame": labeled_frame_number,
                 "event": coarse_label,
                 "relative_player_width": eval(player_coordinates)[0]/1280,
                 "relative_player_height": eval(player_coordinates)[1]/720,
@@ -182,7 +184,7 @@ class LabelPage:
         else:
             # Add new event
             self.events.append({
-                "frame": slider,
+                "frame": labeled_frame_number,
                 "event": coarse_label,
                 "relative_player_width": eval(player_coordinates)[0]/1280,
                 "relative_player_height": eval(player_coordinates)[1]/720,
@@ -193,9 +195,9 @@ class LabelPage:
         
         current_video_id = self.prev_page.video_path.split("/")[-1].split(".")[0]
         event_update, status_update = self.update_event_list()
-        return ( event_update, status_update, 
+        return (event_update, status_update, 
                 gr.update(value=None), gr.update(value=None), gr.update(value=None), gr.update(value=None), 
-                gr.update(value=None), gr.update(value=None), gr.update(value=None), gr.update(value=None))
+                gr.update(value=None), gr.update(value=None), gr.update(value=None), gr.update(value=None), gr.update(value=None))
 
     def update_event_list(self):
         current_video_id = self.prev_page.video_path.split("/")[-1].split(".")[0]
@@ -207,9 +209,9 @@ class LabelPage:
     
     def delete_event(self, slider):
         # Check for event index
-        print(f'Deleting: frame {slider} from {self.events}')
-        existing_event_index = next((index for (index, d) in enumerate(self.events) if d["frame"] == slider), None)
-        if existing_event_index is None: gr.Warning("Event is not labelled"); return gr.update(), gr.update()
+        print(f'Deleting: frame {slider}')
+        existing_event_index = next((index for (index, d) in enumerate(self.events) if d["frame"] == str(slider)), None)
+        if existing_event_index is None: gr.Warning(f"Frame {slider} is not labelled"); return gr.update(), gr.update()
         self.events.pop(existing_event_index)
         return self.update_event_list()
         
@@ -257,14 +259,14 @@ class LabelPage:
         else:
             return 'Near ad' if x < self.net[0] else 'Near deuce'
         
-    def handle_image_click(self, evt: gr.SelectData):
+    def handle_image_click(self, slider, evt: gr.SelectData):
         try:
             if evt is None or evt.index is None:
                 gr.Warning("Please click on the video frame.")
                 return None, None
             x, y = evt.index
             court_pos = self.get_court_position(x, y)
-            return gr.update(value=court_pos), gr.update(value=[x, y])
+            return gr.update(value=court_pos), gr.update(value=[x, y]), gr.update(value=slider)
         
         except Exception as e:
             gr.Warning(f"Error occured while processing: {e}")
