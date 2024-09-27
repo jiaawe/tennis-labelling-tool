@@ -12,8 +12,10 @@ class LabelNetPage:
         self.prev_page = None
         self.prev_page_button = None
         self.video_path = None
-        self.net = [-1, -1]  # net position for new video
-        self.label_net_page, self.selected_video_file, self.frame = self.build_label_net_page(visible=visible)
+        self.net = [-1, -1]  # net position for new video        
+        self.total_frames = None
+        self.video = None
+        self.label_net_page, self.selected_video_file, self.frame, self.slider = self.build_label_net_page(visible=visible)
     
     def build_label_net_page(self, visible=True):
         label_net_page = gr.Group(visible=visible)
@@ -33,12 +35,20 @@ class LabelNetPage:
                 inputs=[],
                 outputs=[coords_output, frame]
             )
+
+            slider = gr.Slider(minimum=1, maximum=10, step=1, value=1, label="Frame Slider")
+
+            slider.release(self.update_frame, inputs=[slider], outputs=[frame, slider]) # set up slider to update frame
             
             # Navigation buttons
             self.next_page_button = gr.Button("Confirm Net Position")
             self.prev_page_button = gr.Button("Back to Select Video", visible=False)
                 
-        return label_net_page, selected_video_file, frame
+        return label_net_page, selected_video_file, frame, slider
+    
+    def update_frame(self, slider):
+        frame = get_current_frame(self.video, slider)
+        return frame, slider
 
     def setup_prev_page_button(self, select_directory_page):
         self.prev_page = select_directory_page
@@ -68,7 +78,7 @@ class LabelNetPage:
             gr.Warning("Please select a valid net position.")
             return None, None, None, None
         
-        video, total_frames = load_video(self.video_path)
+        video, total_frames = load_video(self.video_path)        
         current_frame = get_current_frame(video, 0)
         self.next_page.video, self.next_page.total_frames = video, total_frames
         self.next_page.net = self.scale_net_position(video, (1280, 720))

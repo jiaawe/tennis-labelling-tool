@@ -1,6 +1,6 @@
 import os
 import gradio as gr
-from utils.handle_video import show_video_frame
+from utils.handle_video import load_video, show_video_frame
 from utils.handle_directory import get_video_directories, get_video_files
 
 class SelectDirectoryPage:
@@ -32,7 +32,7 @@ class SelectDirectoryPage:
         select_button.click(
             self.show_label_page, 
             inputs=[self.directory_dropdown, self.video_dropdown],
-            outputs=[self.select_directory_page, label_net_page.label_net_page, label_net_page.selected_video_file, self.next_page_button, label_net_page.next_page_button, label_net_page.prev_page_button, label_net_page.frame]
+            outputs=[self.select_directory_page, label_net_page.label_net_page, label_net_page.selected_video_file, self.next_page_button, label_net_page.next_page_button, label_net_page.prev_page_button, label_net_page.frame, label_net_page.slider]
         )
         return select_button
         
@@ -48,16 +48,18 @@ class SelectDirectoryPage:
     def show_label_page(self, directory, video):
         if not directory or not video:
             gr.Warning("Please select a valid directory and video file.")
-            return gr.update(visible=True), gr.update(visible=False), gr.update(value=None), gr.update(visible=True), gr.update(visible=False), gr.update(visible=False), gr.update(value=None)
+            return gr.update(visible=True), gr.update(visible=False), gr.update(value=None), gr.update(visible=True), gr.update(visible=False), gr.update(visible=False), gr.update(value=None), gr.update(value=None)
         
         video_path = os.path.join("data", "videos", directory, video)
         frame = show_video_frame(video_path)
         self.next_page.video_path = video_path
+        self.next_page.video, self.next_page.total_frames = load_video(video_path)        
+        slider = gr.Slider(minimum=0, maximum=self.next_page.total_frames -1, step=1, value=1, label="Frame Slider")
          
         if frame is None:
             gr.Warning("Error loading video frame.")
-            return gr.update(visible=True), gr.update(visible=False), gr.update(value=None), gr.update(visible=True), gr.update(visible=False), gr.update(visible=False), gr.update(value=None)
+            return gr.update(visible=True), gr.update(visible=False), gr.update(value=None), gr.update(visible=True), gr.update(visible=False), gr.update(visible=False), gr.update(value=None), gr.update(value=None)
         else:
             # directory_page, label_net_page, video_directory, next_page_button, label_net_prev_page_button, frame
-            return gr.update(visible=False), gr.update(visible=True), gr.update(value=video_path), gr.update(visible=False), gr.update(visible=True), gr.update(visible=True), gr.update(value=frame)
+            return gr.update(visible=False), gr.update(visible=True), gr.update(value=video_path), gr.update(visible=False), gr.update(visible=True), gr.update(visible=True), gr.update(value=frame), slider
     
