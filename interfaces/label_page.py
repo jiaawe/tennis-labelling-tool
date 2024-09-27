@@ -176,7 +176,7 @@ class LabelPage:
         if existing_event_index is not None:
             # Update existing event
             self.events[existing_event_index] = {
-                "frame": labeled_frame_number,
+                "frame": int(labeled_frame_number),
                 "event": coarse_label,
                 "relative_player_width": eval(player_coordinates)[0]/1280,
                 "relative_player_height": eval(player_coordinates)[1]/720,
@@ -184,14 +184,14 @@ class LabelPage:
         else:
             # Add new event
             self.events.append({
-                "frame": labeled_frame_number,
+                "frame": int(labeled_frame_number),
                 "event": coarse_label,
                 "relative_player_width": eval(player_coordinates)[0]/1280,
                 "relative_player_height": eval(player_coordinates)[1]/720,
             })
     
         # Sort events by frame number
-        self.events.sort(key=lambda x: x["frame"])
+        self.events.sort(key=lambda x: int(x["frame"]))
         
         current_video_id = self.prev_page.video_path.split("/")[-1].split(".")[0]
         event_update, status_update = self.update_event_list()
