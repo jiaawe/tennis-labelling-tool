@@ -62,7 +62,7 @@ class LabelPage:
                     with gr.Row(elem_id="row1"):
                         gr.Markdown(""" ## Event Labeling""")
                     with gr.Row():
-                        labeled_frame_number = gr.Textbox(label="Frame Number", visible=True, interactive=False)
+                        labeled_frame_number = gr.Number(label="Frame Number", value=1, visible=True, interactive=False)
                     with gr.Row():
                         player = gr.Radio(["P1", "P2", "P3", "P4"], label="Player", interactive=True)
                     with gr.Row():
@@ -167,7 +167,9 @@ class LabelPage:
         if not player_coordinates or labeled_frame_number is None: gr.Warning("Please click the player on the image (hit coordinates)"); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
         if formation != 'Non-serve' and shot_type != 'Serve': gr.Warning("Formation should be 'Non-serve' for non-serve shots."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
         if formation == 'Non-serve' and shot_type == 'Serve': gr.Warning("Formation should not be 'Non-serve' for serve shots."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
-    
+        if shot_type == 'Serve' and shot_direction not in ['W', 'T', 'B']: gr.Warning("Invalid shot direction for serve."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if not self.valid_court_side_direction(court_position, side, shot_direction): gr.Warning("Invalid combination of court position, side, and shot direction. Please re-label. (unless player is left-handed)")
+        
         coarse_label = f"{player}_{court_position.lower().replace(' ', '_')}_{side.lower()}_{shot_type.lower()}_{shot_direction.lower()}_{formation.lower()}_{outcome.lower()}"
     
         # Check if there's an existing event for this frame
@@ -210,7 +212,7 @@ class LabelPage:
     def delete_event(self, slider):
         # Check for event index
         print(f'Deleting: frame {slider}')
-        existing_event_index = next((index for (index, d) in enumerate(self.events) if d["frame"] == str(slider)), None)
+        existing_event_index = next((index for (index, d) in enumerate(self.events) if d["frame"] == int(slider)), None)
         if existing_event_index is None: gr.Warning(f"Frame {slider} is not labelled"); return gr.update(), gr.update()
         self.events.pop(existing_event_index)
         return self.update_event_list()
@@ -271,3 +273,10 @@ class LabelPage:
         except Exception as e:
             gr.Warning(f"Error occured while processing: {e}")
             return None, None
+        
+    def valid_court_side_direction(self, court_position, side, shot_direction):
+        if 'ad' in court_position.lower() and side == 'Forehand' and shot_direction in ['DL', 'CC']: return False
+        if 'deuce' in court_position.lower() and side == 'Backhand' and shot_direction in ['DL', 'CC']: return False
+        if 'ad' in court_position.lower() and side == 'Backhand' and shot_direction in ['II', 'IO']: return False
+        if 'deuce' in court_position.lower() and side == 'Forehand' and shot_direction in ['II', 'IO']: return False
+        return True

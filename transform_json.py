@@ -84,8 +84,8 @@ def process(json_data):
         _, _, court, hand, shot, direction, _, outcome = args
         state = get_state(shot, outcome)   
         if state != GameState.START and direction not in RH_COMBINATIONS[court][hand]:
-            print(f'frame {label['frame']} Wrong Label')
-            return None             
+            print(f"frame {label['frame']} Wrong Label")
+            # return None             
         if state == GameState.START:
             handle_start(label, current_rally)                                  
         elif state == GameState.RETURN or state == GameState.STROKE:
@@ -93,7 +93,10 @@ def process(json_data):
         elif state == GameState.END:
             handle_end(label, current_rally)
             results.append(current_rally)            
-            current_rally = deepcopy(TEMPLATE)            
+            current_rally = deepcopy(TEMPLATE)   
+        else: # added to ensure all cases are covered
+            print(f"frame {label['frame']} Wrong Label")
+            return None         
     return results
         
 
