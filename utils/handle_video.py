@@ -22,7 +22,7 @@ def show_video_frame(video_path):
         return None
         
     current_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    return current_frame
+    return cv2.resize(current_frame, (1280, 720))
     
 
 def get_current_frame(video, frame_index):
