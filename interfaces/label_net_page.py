@@ -69,7 +69,7 @@ class LabelNetPage:
             inputs=[],
             # initialize slider and first video frame too
             outputs=[self.label_net_page, self.prev_page_button, self.next_page_button, label_page.label_page, 
-                     label_page.prev_page_button, label_page.current_frame, label_page.slider, label_page.event_list] + label_page.players
+                     label_page.prev_page_button, label_page.current_frame, label_page.slider, label_page.event_list] + label_page.players + label_page.hands
         )
 
     def show_label_page(self):
@@ -83,11 +83,11 @@ class LabelNetPage:
         self.next_page.video, self.next_page.total_frames = video, total_frames
         # self.next_page.net = self.scale_net_position(video, (1280, 720))
         self.next_page.net = self.net
-        event_list, p1, p2, p3, p4 = self.next_page.load_event_list(self.video_path)
+        event_list, p1, p2, p3, p4, p1_hand, p2_hand, p3_hand, p4_hand = self.next_page.load_event_list(self.video_path)
         
         return (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=True), 
                 gr.update(visible=True), current_frame, gr.Slider(minimum=0, maximum=total_frames, step=1, value=1, label="Frame Slider"), 
-                event_list, p1, p2, p3, p4)
+                event_list, p1, p2, p3, p4, p1_hand, p2_hand, p3_hand, p4_hand)
 
     def get_click_coordinates(self, slider, evt: gr.SelectData):
         try:
@@ -113,19 +113,4 @@ class LabelNetPage:
         x_scale, y_scale = scale_video(video, new_size)
         return [int(original_net[0] * x_scale), int(original_net[1] * y_scale)]
     
-    
-    # def build_label_page_button(self, label_page):
-    #     confirm_net_button = gr.Button("Confirm Net Position")
-    #     self.next_page_button = confirm_net_button
-    #     self.next_page = label_page
-    #     confirm_net_button.click(
-    #         self.show_label_page, 
-    #         inputs=[],
-    #         outputs=[self.label_net_page, label_page.label_page]
-    #     )
-    #     return select_button
-
-    # def show_label_page(self):
-    #     self.next_page.net = self.net
-    #     return gr.update(visible=False), gr.update(visible=True)
         

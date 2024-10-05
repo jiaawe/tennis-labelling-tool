@@ -7,6 +7,12 @@
     "p3": "123",
     "p4": "456"
   },
+  "player_hands": {
+    "p1": "Left",
+    "p2": "Right",
+    "p3": "Left",
+    "p4": "Right"
+  },
   "events": [
     {
       "frame": 51,
