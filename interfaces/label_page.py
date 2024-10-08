@@ -80,7 +80,7 @@ class LabelPage:
                     with gr.Row():
                         side = gr.Radio(["Forehand", "Backhand"], label="Side", interactive=True)
                     with gr.Row():
-                        shot_type = gr.Radio(["Serve", "Return", "Volley", "Lob", "Smash", "Swing"], label="Shot Type", interactive=True)
+                        shot_type = gr.Radio(["Serve", "Return", "Volley", "Lob", "Smash", "Swing", "Second-Serve"], label="Shot Type", interactive=True)
                     with gr.Row():
                         shot_direction = gr.Radio(["T", "B", "W", "CC", "DL", "DM", "II", "IO"], label="Shot Direction", interactive=True)
                     with gr.Row():
@@ -181,9 +181,10 @@ class LabelPage:
         if not formation: gr.Warning("Please select a formation."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
         if not outcome: gr.Warning("Please select an outcome."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
         if not player_coordinates or labeled_frame_number is None: gr.Warning("Please click the player on the image (hit coordinates)"); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
-        if formation != 'Non-serve' and shot_type != 'Serve': gr.Warning("Formation should be 'Non-serve' for non-serve shots."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
-        if formation == 'Non-serve' and shot_type == 'Serve': gr.Warning("Formation should not be 'Non-serve' for serve shots."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
-        if shot_type == 'Serve' and shot_direction not in ['W', 'T', 'B']: gr.Warning("Invalid shot direction for serve."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if formation != 'Non-serve' and 'Serve' not in shot_type: gr.Warning("Formation should be 'Non-serve' for non-serve shots."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if formation == 'Non-serve' and 'Serve' in shot_type: gr.Warning("Formation should not be 'Non-serve' for serve shots."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if 'Serve' in shot_type and shot_direction not in ['W', 'T', 'B']: gr.Warning("Invalid shot direction for serve."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if 'Serve' not in shot_type and shot_direction in ['W', 'T', 'B']: gr.Warning("Invalid shot direction for non-serve."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
         if not self.valid_court_side_direction(player, court_position, side, shot_direction): gr.Warning("Invalid combination of court position, side, and shot direction."); return  gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
         
         coarse_label = f"{player}_{court_position.lower().replace(' ', '_')}_{side.lower()}_{shot_type.lower()}_{shot_direction.lower()}_{formation.lower()}_{outcome.lower()}"
