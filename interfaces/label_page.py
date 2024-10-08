@@ -13,7 +13,8 @@ class LabelPage:
         self.net = None
         self.events = []
         self.player_names = {"p1": None, "p2": None, "p3": None, "p4": None}
-        self.label_page, self.current_frame, self.slider, self.label_button, self.delete_button, self.event_list, self.labels, self.players = self.label_page(visible=visible)
+        self.player_hands = {"p1": None, "p2": None, "p3": None, "p4": None}
+        self.label_page, self.current_frame, self.slider, self.label_button, self.delete_button, self.event_list, self.labels, self.players, self.hands = self.label_page(visible=visible)
         
     def label_page(self, visible=True):
         label_page = gr.Group(visible=visible)
@@ -22,15 +23,24 @@ class LabelPage:
             
             # Player description
             with gr.Row():
-                with gr.Column(elem_classes="column-container"):
+                with gr.Column(elem_classes="column-container", scale=2):
                     p1 = gr.Textbox(label="Player 1", placeholder="Enter P1 Description", interactive=True)
                     p2 = gr.Textbox(label="Player 2", placeholder="Enter P2 Description", interactive=True)
-                
-                with gr.Column(elem_classes="column-container"):
+                    
+                with gr.Column(elem_classes="column-container", scale=1):
+                    p1_hand = gr.Radio(["Left", "Right"], label="P1 Handedness", interactive=True)
+                    p2_hand = gr.Radio(["Left", "Right"], label="P2 Handedness", interactive=True)
+            
+                with gr.Column(elem_classes="column-container", scale=2):
                     p3 = gr.Textbox(label="Player 3", placeholder="Enter P3 Description", interactive=True)
                     p4 = gr.Textbox(label="Player 4", placeholder="Enter P4 Description", interactive=True)
+                    
+                with gr.Column(elem_classes="column-container", scale=1):
+                    p3_hand = gr.Radio(["Left", "Right"], label="P3 Handedness", interactive=True)
+                    p4_hand = gr.Radio(["Left", "Right"], label="P4 Handedness", interactive=True)
                 
             players = [p1, p2, p3, p4]
+            hands = [p1_hand, p2_hand, p3_hand, p4_hand]
     
             # Labeling Information
             with gr.Row():
@@ -99,6 +109,10 @@ class LabelPage:
             for i, player in enumerate(players):
                     player.change(self.update_player, inputs=[player, gr.Number(value=i+1, visible=False)], outputs=[event_list, save_status])
             
+            # Player Hand Update
+            for i, hand in enumerate(hands):
+                hand.change(self.update_player_hand, inputs=[hand, gr.Number(value=i+1, visible=False)], outputs=[event_list, save_status])
+            
             # Slider update
             slider.release(self.update_frame, inputs=[slider], outputs=[current_frame, slider]) # set up slider to update frame
             
@@ -124,7 +138,7 @@ class LabelPage:
             save_button.click(self.save_labels, inputs=[event_list], outputs=[save_status])
             delete_button.click(self.delete_event, inputs=[slider], outputs=[event_list, save_status])
             
-        return label_page, current_frame, slider, label_button, delete_button, event_list, labels, players
+        return label_page, current_frame, slider, label_button, delete_button, event_list, labels, players, hands
 
     def setup_prev_page_button(self, label_net_page):
         self.prev_page = label_net_page
@@ -157,6 +171,8 @@ class LabelPage:
             gr.Warning(f"Encountered an error while skipping frames: {e}")
     
     def label_event(self, player, court_position, side, shot_type, shot_direction, formation, outcome, player_coordinates, labeled_frame_number):
+        if any(not player_desc for player_desc in self.player_names.values()): gr.Warning("Please add in description for all players."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+        if any(not hand for hand in self.player_hands.values()): gr.Warning("Please select handedness for all players."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
         if not player: gr.Warning("Please select a player."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
         if not court_position: gr.Warning("Please select a court position."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
         if not side: gr.Warning("Please select a side."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
@@ -168,7 +184,7 @@ class LabelPage:
         if formation != 'Non-serve' and shot_type != 'Serve': gr.Warning("Formation should be 'Non-serve' for non-serve shots."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
         if formation == 'Non-serve' and shot_type == 'Serve': gr.Warning("Formation should not be 'Non-serve' for serve shots."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
         if shot_type == 'Serve' and shot_direction not in ['W', 'T', 'B']: gr.Warning("Invalid shot direction for serve."); return gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
-        if not self.valid_court_side_direction(court_position, side, shot_direction): gr.Warning("Invalid combination of court position, side, and shot direction. Please re-label. (unless player is left-handed)")
+        if not self.valid_court_side_direction(player, court_position, side, shot_direction): gr.Warning("Invalid combination of court position, side, and shot direction."); return  gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
         
         coarse_label = f"{player}_{court_position.lower().replace(' ', '_')}_{side.lower()}_{shot_type.lower()}_{shot_direction.lower()}_{formation.lower()}_{outcome.lower()}"
     
@@ -206,6 +222,7 @@ class LabelPage:
         events_json = json.dumps({"video_id": current_video_id, 
                                   "total_frames": self.total_frames, 
                                   "player_descriptions": self.player_names,
+                                  "player_hands": self.player_hands,
                                   "events": self.events}, indent=2)
         return gr.update(value=events_json, language="json"), gr.update(value="Labelled events not updated")
     
@@ -238,14 +255,18 @@ class LabelPage:
             if os.path.exists(file_path):
                 with open(file_path, 'r') as f:
                     existing_data = json.load(f)
+                if existing_data.get('player_descriptions') is None: existing_data['player_descriptions'] = {"p1": None, "p2": None, "p3": None, "p4": None}
+                if existing_data.get('player_hands') is None: existing_data['player_hands'] = {"p1": None, "p2": None, "p3": None, "p4": None}
             else:
-                existing_data = {"video_id": current_video_id, "total_frames": self.total_frames, "player_descriptions": self.player_names, "events": []}
+                existing_data = {"video_id": current_video_id, "total_frames": self.total_frames, "player_descriptions": self.player_names, "events": [], "player_hands": self.player_hands}
             
             self.events = existing_data["events"]
             self.player_names = existing_data["player_descriptions"]
             return (gr.update(value=json.dumps(existing_data, indent=2), language="json"), gr.update(value=existing_data["player_descriptions"]["p1"]), 
                     gr.update(value=existing_data["player_descriptions"]["p2"]), gr.update(value=existing_data["player_descriptions"]["p3"]), 
-                    gr.update(value=existing_data["player_descriptions"]["p4"]))
+                    gr.update(value=existing_data["player_descriptions"]["p4"]), gr.update(value=existing_data["player_hands"]["p1"]),
+                    gr.update(value=existing_data["player_hands"]["p2"]), gr.update(value=existing_data["player_hands"]["p3"]),
+                    gr.update(value=existing_data["player_hands"]["p4"]))
         
         except Exception as e:
             gr.Warning(f"Error loading event list: {e}")
@@ -253,6 +274,10 @@ class LabelPage:
     
     def update_player(self, player, i):
         self.player_names[f"p{i}"] = player
+        return self.update_event_list()
+    
+    def update_player_hand(self, hand, i):
+        self.player_hands[f"p{i}"] = hand
         return self.update_event_list()
     
     def get_court_position(self, x: int, y: int) -> str:
@@ -274,9 +299,23 @@ class LabelPage:
             gr.Warning(f"Error occured while processing: {e}")
             return None, None
         
-    def valid_court_side_direction(self, court_position, side, shot_direction):
-        if 'ad' in court_position.lower() and side == 'Forehand' and shot_direction in ['DL', 'CC']: return False
-        if 'deuce' in court_position.lower() and side == 'Backhand' and shot_direction in ['DL', 'CC']: return False
-        if 'ad' in court_position.lower() and side == 'Backhand' and shot_direction in ['II', 'IO']: return False
-        if 'deuce' in court_position.lower() and side == 'Forehand' and shot_direction in ['II', 'IO']: return False
-        return True
+    def valid_court_side_direction(self, player, court_position, side, shot_direction):
+        player = player.lower()
+        player_hand = self.player_hands[player]
+        
+        if player_hand == 'Right':
+            if 'ad' in court_position.lower() and side == 'Forehand' and shot_direction in ['DL', 'CC']: return False
+            if 'deuce' in court_position.lower() and side == 'Backhand' and shot_direction in ['DL', 'CC']: return False
+            if 'ad' in court_position.lower() and side == 'Backhand' and shot_direction in ['II', 'IO']: return False
+            if 'deuce' in court_position.lower() and side == 'Forehand' and shot_direction in ['II', 'IO']: return False
+            return True
+
+        if player_hand == 'Left':
+            if 'ad' in court_position.lower() and side == 'Backhand' and shot_direction in ['DL', 'CC']: return False
+            if 'deuce' in court_position.lower() and side == 'Forehand' and shot_direction in ['DL', 'CC']: return False
+            if 'ad' in court_position.lower() and side == 'Forehand' and shot_direction in ['II', 'IO']: return False
+            if 'deuce' in court_position.lower() and side == 'Backhand' and shot_direction in ['II', 'IO']: return False
+            return True
+        
+        gr.Warning(f"Invalid handedness for player {player}")
+        return False
