@@ -82,7 +82,7 @@ class LabelPage:
                     with gr.Row():
                         shot_type = gr.Radio(["Serve", "Return", "Volley", "Lob", "Smash", "Swing", "Second-Serve"], label="Shot Type", interactive=True)
                     with gr.Row():
-                        shot_direction = gr.Radio(["T", "B", "W", "CC", "DL", "DM", "II", "IO"], label="Shot Direction", interactive=True)
+                        shot_direction = gr.Radio(["T", "B", "W", "CC", "DL", "II", "IO"], label="Shot Direction", interactive=True)
                     with gr.Row():
                         formation = gr.Radio(["Conventional", "I-formation", "Australian", "Non-serve"], label="Formation", interactive=True)
                     with gr.Row():
