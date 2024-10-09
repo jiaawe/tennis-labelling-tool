@@ -5,7 +5,8 @@ import argparse
 import json
 import random
 
-from utils.tennis_modeling import GameState, ShotOutcome, get_outcome, get_state, is_valid_transition, is_valid_shot
+from utils.tennis_modeling import GameState, ShotOutcome, get_outcome, \
+    get_state, is_valid_transition, is_valid_shot, assign_player_sides
 
 random.seed(42)
 
@@ -25,23 +26,6 @@ def get_start_frame(frame):
 def get_end_frame(frame, total_frames):    
     random_end = randint(RANDOM_END[0], RANDOM_END[1])
     return min(total_frames, frame + random_end)
-
-def assign_player_sides(player, side):
-    assert side in ['near', 'far']
-    assert player in ['P1', 'P2', 'P3', 'P4']
-    sides = ['near', 'far']
-    i = 0 if side == "near" else 1
-    if player in ['P1', 'P2']:
-        return {
-            sides[i] : ['P1', 'P2'],
-            sides[1-i]  : ['P3', 'P4']
-        }
-    if player in ['P3', 'P4']:
-        return {
-            sides[1-i] : ['P1', 'P2'],
-            sides[i]  : ['P3', 'P4']
-        }    
-    return None
 
 def handle_start(label, rally):
     '''

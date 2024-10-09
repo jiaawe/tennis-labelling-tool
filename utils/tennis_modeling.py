@@ -90,3 +90,23 @@ def is_valid_shot(handedness, court, hand, shot, direction):
     if handedness == "Left":
         return direction in LH_COMBINATIONS[court][hand]
     return direction in RH_COMBINATIONS[court][hand]
+
+def assign_player_sides(player, side):
+    '''
+    This function ties a specific set of players e.g. P1 and P2 to a side e.g. near
+    '''
+    assert side in ['near', 'far']
+    assert player in ['P1', 'P2', 'P3', 'P4']
+    sides = ['near', 'far']
+    i = 0 if side == "near" else 1
+    if player in ['P1', 'P2']:
+        return {
+            sides[i] : ['P1', 'P2'],
+            sides[1-i]  : ['P3', 'P4']
+        }
+    if player in ['P3', 'P4']:
+        return {
+            sides[1-i] : ['P1', 'P2'],
+            sides[i]  : ['P3', 'P4']
+        }    
+    return None
