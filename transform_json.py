@@ -4,6 +4,7 @@ from random import randint
 import argparse
 import json
 import random
+import os 
 
 from utils.tennis_modeling import GameState, ShotOutcome, get_outcome, \
     get_state, is_valid_transition, is_valid_shot, assign_player_sides
@@ -61,19 +62,27 @@ def handle_end(label, rally, total_frames):
     rally['video_id'] += f'_{end_frame}'        
 
 def main(files):
-    filepath = './data/labelled/'    
+    filepath = './data/labelled/'
+    savepath = './data/transformed/'
+    os.makedirs(savepath, exist_ok=True)
     jsons = []
-    for file in files:              
-        with open(f'{filepath}{file}', 'r') as f:                        
-            jsons += f.read().splitlines()
-            f.close()    
-    for json_file in jsons:             
-        filename = json_file.split(".")[0]  
-        with open(f'{filepath}{json_file}', 'r') as json_data:
-            d = json.load(json_data)  
-            json_data.close()            
-            new_json_data = process(d)
-        with open(f'{filepath}{filename}_transformed.json', 'w') as f:
+    
+    for file in files:
+        file_path = os.path.join(filepath, file.strip())
+        with open(file_path, 'r') as f:
+            jsons.extend([line.strip() for line in f])
+    
+    for json_file in jsons:
+        filename = json_file.split(".")[0]
+        json_file_path = os.path.join(filepath, json_file)
+        
+        with open(json_file_path, 'r') as json_data:
+            d = json.load(json_data)
+        
+        new_json_data = process(d)
+        
+        save_file_path = os.path.join(savepath, f"{filename}_transformed.json")
+        with open(save_file_path, 'w') as f:
             json.dump(new_json_data, f, indent=2)
 
 def process(json_data):    
