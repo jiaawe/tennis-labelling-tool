@@ -41,16 +41,19 @@ def is_valid_transition(curr_state, next_state):
         return True
     if curr_state == GameState.START and next_state != GameState.RETURN:
         return False
-    if curr_state == GameState.RETURN and next_state == GameState.START:
+    if curr_state == GameState.SECOND_SERVE and next_state != GameState.RETURN:
         return False
-    if curr_state == GameState.STROKE and next_state == GameState.START:
+    if curr_state == GameState.RETURN and next_state != GameState.STROKE:
         return False
-    # Need to handle first serve error
+    if curr_state == GameState.STROKE and next_state != GameState.STROKE:
+        return False
     return True
 
 def get_state(shot, failed_first_serve):
     '''
-    args: Player_Side_Court_Handedness_Shot_Direction_Formation_Outcome
+    This function takes the name of the shot, and whether the first service
+    had failed and outputs whether it is a start, second serve, return or 
+    normal stroke.
     '''               
     # TEMPORARY FIX TO OBTAIN SECOND SERVE    
     if "serve" in shot and not failed_first_serve:        
