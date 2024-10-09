@@ -78,9 +78,9 @@ class LabelNetPage:
             gr.Warning("Please select a valid net position.")
             return None, None, None, None
         
-        video, total_frames = load_video(self.video_path)        
+        video, total_frames, fps = load_video(self.video_path)               
         current_frame = get_current_frame(video, 0)
-        self.next_page.video, self.next_page.total_frames = video, total_frames
+        self.next_page.video, self.next_page.total_frames, self.next_page.fps = video, total_frames, fps
         # self.next_page.net = self.scale_net_position(video, (1280, 720))
         self.next_page.net = self.net
         event_list, p1, p2, p3, p4, p1_hand, p2_hand, p3_hand, p4_hand = self.next_page.load_event_list(self.video_path)

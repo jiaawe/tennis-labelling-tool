@@ -10,6 +10,7 @@ class LabelPage:
         self.prev_page_button = None
         self.video = None
         self.total_frames = None
+        self.fps = None
         self.net = None
         self.events = []
         self.player_names = {"p1": None, "p2": None, "p3": None, "p4": None}
@@ -221,7 +222,8 @@ class LabelPage:
     def update_event_list(self):
         current_video_id = self.prev_page.video_path.split("/")[-1].split(".")[0]
         events_json = json.dumps({"video_id": current_video_id, 
-                                  "total_frames": self.total_frames, 
+                                  "total_frames": self.total_frames,
+                                  "fps": self.fps, 
                                   "player_descriptions": self.player_names,
                                   "player_hands": self.player_hands,
                                   "events": self.events}, indent=2)
@@ -259,7 +261,7 @@ class LabelPage:
                 if existing_data.get('player_descriptions') is None: existing_data['player_descriptions'] = {"p1": None, "p2": None, "p3": None, "p4": None}
                 if existing_data.get('player_hands') is None: existing_data['player_hands'] = {"p1": None, "p2": None, "p3": None, "p4": None}
             else:
-                existing_data = {"video_id": current_video_id, "total_frames": self.total_frames, "player_descriptions": self.player_names, "events": [], "player_hands": self.player_hands}
+                existing_data = {"video_id": current_video_id, "total_frames": self.total_frames, "fps": self.fps,"player_descriptions": self.player_names, "events": [], "player_hands": self.player_hands}
             
             self.events = existing_data["events"]
             self.player_names = existing_data["player_descriptions"]

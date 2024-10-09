@@ -37,7 +37,8 @@ def get_current_frame(video, frame_index):
 def load_video(video_path):
     video = cv2.VideoCapture(video_path)
     total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
-    return video, total_frames
+    fps = int(video.get(cv2.CAP_PROP_FPS))
+    return video, total_frames, fps
 
 def get_dimensions(video):
     width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))

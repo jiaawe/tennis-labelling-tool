@@ -53,7 +53,7 @@ class SelectDirectoryPage:
         video_path = os.path.join("data", "videos", directory, video)
         frame = show_video_frame(video_path)
         self.next_page.video_path = video_path
-        self.next_page.video, self.next_page.total_frames = load_video(video_path)        
+        self.next_page.video, self.next_page.total_frames, _ = load_video(video_path)        
         slider = gr.Slider(minimum=0, maximum=self.next_page.total_frames -1, step=1, value=1, label="Frame Slider")
          
         if frame is None:
