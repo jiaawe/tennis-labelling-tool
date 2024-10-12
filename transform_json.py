@@ -7,7 +7,7 @@ import random
 import os 
 
 from utils.tennis_modeling import GameState, ShotOutcome, get_outcome, \
-    get_state, is_valid_transition, is_valid_shot, assign_player_sides
+    get_state, is_valid_transition, is_valid_shot, assign_player_sides, is_valid_second_serve
 
 random.seed(42)
 
@@ -103,7 +103,8 @@ def process(json_data):
     prev_state = None
     prev_side= None
     player_sides = None
-    failed_one_serve = False
+    failed_one_serve, failed_serve_label = False, None
+    
     started = False
     for label in body:        
         args = label['event'].split('_')
@@ -119,6 +120,7 @@ def process(json_data):
             started = True
             if outcome == ShotOutcome.ERR:                
                 failed_one_serve = True          
+                failed_serve_label = [player, side, court, hand]
             prev_state = state
             prev_side = side
             player_sides = assign_player_sides(player, side)
@@ -142,14 +144,20 @@ def process(json_data):
             print(f"Frame {label['frame']}: Invalid side label")
             return None
         
+        if state == GameState.SECOND_SERVE:
+            assert failed_one_serve and failed_serve_label            
+            if not is_valid_second_serve(failed_serve_label, player, side, court, hand):
+                print(f"Frame {label['frame']}: Invalid second serve")
+                return None
         if player not in player_sides[side]:
-            print(f"Frame {label['frame']}: Invalid player detected at indicated side for frame")          
+            print(f"Frame {label['frame']}: Invalid player detected at indicated side for frame")         
 
         # Side, player and state transitions are all valid
         prev_state, prev_side = state, side
         
         if state == GameState.SECOND_SERVE:
-            failed_one_serve = False            
+            failed_one_serve = False   
+            failed_serve_label = None                     
             handle_second_serve(label, current_rally)
         else:
             handle_normal(label, current_rally)        

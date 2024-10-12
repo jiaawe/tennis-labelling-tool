@@ -58,8 +58,8 @@ def get_state(shot, failed_first_serve):
     # TEMPORARY FIX TO OBTAIN SECOND SERVE    
     if "serve" in shot and not failed_first_serve:        
         return GameState.START                
-    if "serve" in shot:
-        return GameState.SECOND_SERVE
+    if "second-serve" in shot or "serve" in shot:
+        return GameState.SECOND_SERVE    
     if "return" in shot:
         return GameState.RETURN    
     return GameState.STROKE
@@ -93,6 +93,13 @@ def is_valid_shot(handedness, court, hand, shot, direction):
     if handedness == "Left":
         return direction in LH_COMBINATIONS[court][hand]
     return direction in RH_COMBINATIONS[court][hand]
+
+def is_valid_second_serve(failed_serve_label, player, side, court, hand):
+    '''
+    This function checks whether a second serve is valid based on whether they have
+    the same player, side, court and hand
+    '''
+    return [player, side, court, hand] == failed_serve_label
 
 def assign_player_sides(player, side):
     '''
