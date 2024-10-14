@@ -86,7 +86,7 @@ def is_valid_shot(handedness, court, hand, shot, direction):
     assert handedness in ['Right', 'Left']
     assert court in ['ad', 'deuce']
     assert hand in ['forehand', 'backhand']
-    assert shot in ['serve', 'return', 'volley', 'volley', 'lob', 'smash', 'swing']
+    assert shot in ['serve', 'second-serve', 'return', 'volley', 'lob', 'smash', 'swing']
     assert direction in ['dl', 'cc', 'ii', 'io', 't', 'b', 'w'] 
     if shot == 'serve':
         return hand == 'forehand' and direction in ['t', 'b', 'w']
